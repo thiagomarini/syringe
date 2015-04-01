@@ -30,16 +30,8 @@ class ServiceFactory
      * @var array
      */
     protected $serviceList;
-
-    private function loadServiceList()
-    {
-        $string = file_get_contents('services.json');
-        $json   = json_decode($string, true);
-
-        foreach ($json['services'] as $service) {
-            $this->serviceList[$service['id']] = $service;
-        }
-    }
+    protected $jsonObj;
+    const JSON_FILE = 'services.json';
 
     /**
      * You can imagine to inject your own id list or merge with
@@ -47,11 +39,48 @@ class ServiceFactory
      */
     public function __construct()
     {
-
         $this->loadServiceList();
+    }
 
-        print_r($this->serviceList);
+    private function loadJsonFile()
+    {
+        $string        = file_get_contents(self::JSON_FILE);
+        $this->jsonObj = json_decode($string);
+    }
 
+    private function loadServiceList()
+    {
+        $this->loadJsonFile();
+
+        foreach ($this->jsonObj->services as $service) {
+            $this->serviceList[$service->id] = $service;
+        }
+    }
+
+    /**
+     * @param array $serviceData
+     *
+     * @return array
+     */
+    private function getArgs($serviceData)
+    {
+        $args = [];
+        if (isset($serviceData->arguments)) {
+            foreach ($serviceData->arguments as $arg) {
+                $args[] = $this->instantiateService($arg->id);
+            }
+        }
+
+        return $args;
+    }
+
+    private function instantiateService($id)
+    {
+        $serviceData = $this->serviceList[$id];
+
+        $reflector = new \ReflectionClass($serviceData->class);
+
+        return $reflector->newInstanceArgs($this->getArgs($serviceData));
     }
 
     /**
@@ -60,16 +89,17 @@ class ServiceFactory
      * @param string $id a known id key
      *
      * @return a registered service
+     *
      * @throws \InvalidArgumentException
      */
     public function create($id)
     {
-        if (!array_key_exists($id, $this->serviceList)) {
+
+        if (!isset($this->serviceList[$id])) {
             throw new \InvalidArgumentException("'$id' is not a registered service");
         }
-        $className = $this->serviceList[$id];
 
-        return new $className();
+        return $this->instantiateService($id);
     }
 }
 
@@ -115,8 +145,21 @@ class Container
     }
 
     /**
-     * gets the instance via lazy initialization (created on first usage)
+     * Creates and adds a service to the repository
      *
+     * @param $id
+     *
+     * @return a registered service
+     */
+    private function fetchService($id)
+    {
+        $service = $this->factory->create($id);
+        $this->repository->add($id, $service);
+
+        return $service;
+    }
+
+    /**
      * @return self
      */
     public static function getInstance()
@@ -130,6 +173,8 @@ class Container
     }
 
     /**
+     * Gets the instance via lazy initialization (created on first usage)
+     *
      * @param $id
      *
      * @return a registered service
@@ -139,12 +184,7 @@ class Container
         try {
             return $this->repository->get($id);
         } catch (\Exception $e) {
-            return $this->findService($id);
+            return $this->fetchService($id);
         }
-    }
-
-    private function findService($id)
-    {
-        $this->repository->add($id, $service);
     }
 }
