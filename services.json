@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "id": "www-test-a",
+      "class": "Www\\TestA",
+      "arguments": [
+        {
+          "class": "\\DateTime"
+        }
+      ]
+    },
+    {
+      "id": "www-test-b",
+      "class": "Www\\TestB",
+      "arguments": [
+        {
+          "service": "www-test-a"
+        }
+      ]
+    }
+  ]
+}
