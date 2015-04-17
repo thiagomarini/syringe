@@ -7,21 +7,20 @@ class ServiceFactory
     /**
      * @var array
      */
-    protected $serviceList;
+    private $serviceList;
 
     /**
      * @var Json Object
      */
-    protected $jsonObj;
+    private $jsonObj;
 
     /**
      * @var config json file with the services
      */
-    protected $jsonConfigFile;
+    private $jsonConfigFile;
 
     /**
-     * You can imagine to inject your own id list or merge with
-     * the default ones...
+     * @param string $configFile
      */
     public function __construct($configFile)
     {
@@ -35,25 +34,18 @@ class ServiceFactory
         $this->jsonObj = json_decode($string);
     }
 
-    private function loadServiceList()
-    {
-        $this->loadJsonFile();
-
-        foreach ($this->jsonObj->services as $service) {
-            $this->serviceList[$service->id] = $service;
-        }
-    }
-
     /**
-     * @param array $serviceData
+     * @param \stdClass $serviceData
+     * @param Container $container
      *
      * @return array
      */
-    private function getArgs($serviceData, Container $container)
+    private function getArgs(\stdClass $serviceData, Container $container)
     {
         $args = [];
         if (isset($serviceData->arguments)) {
             foreach ($serviceData->arguments as $arg) {
+                // recurse back to the container to find dependencies
                 $args[] = $container->get($arg->id);
             }
         }
@@ -64,9 +56,10 @@ class ServiceFactory
     /**
      * Use reflection to instantiate new objects
      *
-     * @param $id
+     * @param           $id
+     * @param Container $container
      *
-     * @return object
+     * @return mixed - any object
      */
     private function instantiateService($id, Container $container)
     {
@@ -77,10 +70,20 @@ class ServiceFactory
         return $reflector->newInstanceArgs($this->getArgs($serviceData, $container));
     }
 
+    private function loadServiceList()
+    {
+        $this->loadJsonFile();
+
+        foreach ($this->jsonObj->services as $service) {
+            $this->serviceList[$service->id] = $service;
+        }
+    }
+
     /**
-     * @param string $id a known id key
+     * @param string    $id - a known id key
+     * @param Container $container
      *
-     * @return a registered service
+     * @return mixed - a registered service
      *
      * @throws \InvalidArgumentException
      */

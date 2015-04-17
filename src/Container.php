@@ -27,7 +27,7 @@ class Container
     private $servicesCreating = [];
 
     /**
-     * @param string $configFile
+     * @param string $configFile - path to json config file containing the services
      * @param ServiceRepository $repository
      */
     public function __construct($configFile, ServiceRepository $repository = null)
@@ -60,7 +60,7 @@ class Container
             }
             // remmember ids called
             $this->servicesCreating[$id] = true;
-            // pass the container force one instantiation per class
+            // pass the container to force only one instantiation per class
             $service = $this->factory->create($id, $this);
 
             unset($this->servicesCreating[$id]);
