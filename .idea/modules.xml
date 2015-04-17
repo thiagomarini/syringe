@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/DI-tutorial.iml" filepath="$PROJECT_DIR$/.idea/DI-tutorial.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Syringe/.idea/Syringe.iml" filepath="$PROJECT_DIR$/../Syringe/.idea/Syringe.iml" />
     </modules>
   </component>
 </project>
