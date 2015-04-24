@@ -7,7 +7,7 @@ class FunctionalTest extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->container = new Syringe\Container(__DIR__ . '/services.json');
+        $this->container = new Syringe\Container(new \Syringe\JsonServiceFactory(__DIR__ . '/services.json'));
     }
 
     public function testCorrectInstantiation()

@@ -30,13 +30,12 @@ class Container
      * @param string $configFile - path to json config file containing the services
      * @param ServiceRepository $repository
      */
-    public function __construct($configFile, ServiceRepository $repository = null)
+    public function __construct(ServiceFactory $factory, ServiceRepository $repository = null)
     {
         // if no other repository is provided
         // use the in-memory one
         $this->repository = $repository ?: new InMemoryServiceRepository();
-
-        $this->factory = new ServiceFactory($configFile);
+        $this->factory    = $factory;
     }
 
     /**
@@ -53,7 +52,6 @@ class Container
         $service = $this->repository->get($id);
 
         if (is_null($service)) {
-
             if (isset($this->servicesCreating[$id])) {
                 $msg = 'Circular dependency detected: ' . implode(' => ', array_keys($this->servicesCreating)) . " => {$id}";
                 throw new CircularDependencyException($msg);
